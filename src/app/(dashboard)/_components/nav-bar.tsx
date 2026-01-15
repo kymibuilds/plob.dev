@@ -16,7 +16,7 @@ export default function Navbar() {
       {/* Main Content Area */}
       <div className="w-64 flex flex-col gap-8 px-6 py-6">
         {/* Brand */}
-        <div className="text-sm font-medium tracking-tight">
+        <div className="text-sm font-medium tracking-tight cursor-pointer" onClick={() => router.push("/")}>
           nyahh.sproink.dev
         </div>
 
@@ -33,6 +33,9 @@ export default function Navbar() {
           </Link>
           <Link href="/sponsors" className="hover:underline">
             sponsors
+          </Link>
+          <Link href="/integrations" className="hover:underline">
+            integrations
           </Link>
         </nav>
 

@@ -1,4 +1,4 @@
-type Feature = "links" | "blogs" | "products";
+type Feature = "links" | "blogs" | "products" | "integrations";
 
 export type FeatureConfig = Record<Feature, boolean>;
 
