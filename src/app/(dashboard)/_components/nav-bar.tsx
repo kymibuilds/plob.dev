@@ -17,7 +17,7 @@ export default function Navbar() {
       <div className="w-64 flex flex-col gap-8 px-6 py-6">
         {/* Brand */}
         <div className="text-sm font-medium tracking-tight cursor-pointer" onClick={() => router.push("/")}>
-          nyahh.sproink.dev
+          nyahh.plop.dev
         </div>
 
         {/* Navigation */}

@@ -8,6 +8,14 @@ type LinkItem = {
   url: string;
 };
 
+type Product = {
+  id: string;
+  name: string;
+  price: string;
+  imageUrl: string | null;
+  isActive: boolean;
+};
+
 export default function MyPage() {
   const [features, setFeatures] = useState<FeatureConfig>({
     links: true,
@@ -17,29 +25,30 @@ export default function MyPage() {
   });
 
   const [links, setLinks] = useState<LinkItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  // Fetch links on mount
+  // Fetch data on mount
   useEffect(() => {
     fetch("/api/links")
       .then((res) => res.json())
       .then((data) => setLinks(data))
       .catch(console.error);
+
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch(console.error);
   }, []);
 
-  // Mock data (blogs & products remain mock for now)
+  // Mock data (blogs remain mock for now)
   const blogs = [
     "building a minimal saas with next.js",
     "why text-first uis scale better",
     "auth patterns that don't suck",
   ];
-  const products = [
-    { name: "minimal saas starter", price: "$149", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&h=200&fit=crop" },
-    { name: "auth patterns guide", price: "$29", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=200&fit=crop" },
-    { name: "dashboard kit", price: "free", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop" },
-    { name: "icon pack v2", price: "$19", image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=200&fit=crop" },
-    { name: "component library", price: "$79", image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=300&h=200&fit=crop" },
-    { name: "email templates", price: "$39", image: "https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=300&h=200&fit=crop" },
-  ];
+
+  // Filter to only active products
+  const activeProducts = products.filter((p) => p.isActive);
 
   return (
     <main className="w-full min-h-screen flex justify-center px-6 py-16">
@@ -91,22 +100,28 @@ export default function MyPage() {
         )}
 
         {/* Products */}
-        {features.products && (
+        {features.products && activeProducts.length > 0 && (
           <section className="flex flex-col gap-4 items-center w-full">
             <h2 className="mono text-xs text-muted-foreground">［ products ］</h2>
             <div className="grid grid-cols-3 gap-2 w-full">
-              {products.map((product) => (
+              {activeProducts.map((product) => (
                 <a
-                  key={product.name}
+                  key={product.id}
                   className="flex flex-col group cursor-pointer border border-border bg-card/50 hover:border-foreground/20 transition-colors"
                 >
-                  <div className="aspect-[3/2] overflow-hidden border-b border-border">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  {product.imageUrl ? (
+                    <div className="aspect-[3/2] overflow-hidden border-b border-border">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-[3/2] bg-muted/50 border-b border-border flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground">no image</span>
+                    </div>
+                  )}
                   <div className="flex flex-col text-left p-2">
                     <span className="text-xs group-hover:underline truncate">{product.name}</span>
                     <span className="mono text-[10px] text-muted-foreground">{product.price}</span>
@@ -119,7 +134,7 @@ export default function MyPage() {
 
         {/* Footer */}
         <div className="mono text-xs text-muted-foreground pt-6">
-          sproink.dev/nyahh
+          plop.dev/nyahh
         </div>
       </div>
     </main>

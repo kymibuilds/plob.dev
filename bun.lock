@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "sproink",
+      "name": "plop",
       "dependencies": {
         "@lucia-auth/adapter-drizzle": "^1.1.0",
         "@radix-ui/react-slot": "^1.2.4",
