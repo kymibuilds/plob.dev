@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { db } from "@/db";
 import { users, userSettings, links, blogs, products } from "@/db/schema";
 import { eq, asc, desc, and } from "drizzle-orm";
@@ -6,6 +7,41 @@ import { eq, asc, desc, and } from "drizzle-orm";
 type Props = {
   params: Promise<{ username: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { username } = await params;
+  
+  const user = await db.query.users.findFirst({
+    where: eq(users.username, username),
+    columns: { username: true, bio: true },
+  });
+
+  if (!user) {
+    return {
+      title: "User Not Found",
+    };
+  }
+
+  const title = `${user.username} | plob.dev`;
+  const description = user.bio || `Check out ${user.username}'s links, blogs, and more on plob.dev`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://${user.username}.plob.dev`,
+      siteName: "plob.dev",
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+  };
+}
 
 export default async function PublicProfilePage({ params }: Props) {
   const { username } = await params;

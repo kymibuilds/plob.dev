@@ -18,10 +18,27 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "plob",
-  description: "linktree, but better",
+  title: {
+    default: "plob.dev",
+    template: "%s | plob.dev",
+  },
+  description: "linktree, but better - blogs, products, links, and analytics all in one place",
   icons: {
     icon: "/favicon.svg",
+  },
+  metadataBase: new URL("https://plob.dev"),
+  openGraph: {
+    title: "plob.dev",
+    description: "linktree, but better - blogs, products, links, and analytics all in one place",
+    url: "https://plob.dev",
+    siteName: "plob.dev",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "plob.dev",
+    description: "linktree, but better - blogs, products, links, and analytics all in one place",
   },
 };
 
