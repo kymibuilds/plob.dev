@@ -114,50 +114,82 @@ export function BlogEditor({
     onClose();
   };
 
+  // Mobile tab state
+  const [mobileTab, setMobileTab] = useState<"write" | "preview">("write");
+
   return (
     <div className={`fixed inset-0 bg-background z-50 flex flex-col ${isDragging ? "cursor-col-resize select-none" : ""}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-border gap-4">
+        <div className="flex items-center gap-4 flex-1">
           <button
             onClick={handleClose}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm text-muted-foreground hover:text-foreground whitespace-nowrap"
           >
             ← back
           </button>
-          <span className="text-xs mono text-muted-foreground">
+          
+          {/* Mobile Tab Toggle */}
+          <div className="flex md:hidden bg-muted/50 p-0.5 rounded-md">
+            <button
+              onClick={() => setMobileTab("write")}
+              className={`px-3 py-1 text-xs rounded-sm transition-all ${
+                mobileTab === "write" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              write
+            </button>
+            <button
+              onClick={() => setMobileTab("preview")}
+              className={`px-3 py-1 text-xs rounded-sm transition-all ${
+                mobileTab === "preview" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              preview
+            </button>
+          </div>
+
+          <span className="text-xs mono text-muted-foreground hidden md:inline ml-2">
             {hasChanges ? "unsaved changes" : "saved"}
           </span>
         </div>
         <button
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
-          className="text-xs bg-foreground text-background px-4 py-1.5 hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="text-xs bg-foreground text-background px-4 py-1.5 hover:opacity-90 transition-opacity disabled:opacity-50 whitespace-nowrap"
         >
           {isSaving ? "saving..." : "save"}
         </button>
       </div>
 
       {/* Title Input */}
-      <div className="px-6 py-4 border-b border-border">
+      <div className="px-4 md:px-6 py-4 border-b border-border">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title..."
-          className="w-full text-2xl font-medium bg-transparent outline-none placeholder:text-muted-foreground/50"
+          className="w-full text-xl md:text-2xl font-medium bg-transparent outline-none placeholder:text-muted-foreground/50"
         />
       </div>
 
-      {/* Side-by-side Editor and Preview */}
-      <div ref={containerRef} className="flex-1 flex overflow-hidden">
+      {/* Editor Content Area */}
+      <div ref={containerRef} className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
         {/* Editor Pane */}
         <div 
-          className="h-full overflow-hidden"
-          style={{ width: `${splitPercent}%` }}
+          className={`h-full overflow-hidden flex flex-col ${
+            // On mobile, show if write tab. On desktop, always show but non-flex (controlled by width)
+            mobileTab === "write" ? "flex-1 md:flex-none" : "hidden md:flex md:flex-none" 
+          }`}
+          style={{ width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${splitPercent}%` : undefined }}
         >
           <div className="h-full p-4 flex flex-col">
-            <div className="text-[10px] mono text-muted-foreground mb-2 px-1">write</div>
+            <div className="text-[10px] mono text-muted-foreground mb-2 px-1 hidden md:block">write</div>
             <div className="flex-1 overflow-auto">
               <MarkdownEditor
                 value={content}
@@ -169,9 +201,9 @@ export function BlogEditor({
           </div>
         </div>
 
-        {/* Resizable Divider */}
+        {/* Resizable Divider (Desktop only) */}
         <div
-          className="w-1 bg-border hover:bg-foreground/20 cursor-col-resize transition-colors flex-shrink-0 relative group"
+          className="hidden md:block w-1 bg-border hover:bg-foreground/20 cursor-col-resize transition-colors flex-shrink-0 relative group"
           onMouseDown={() => setIsDragging(true)}
         >
           <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-foreground/10" />
@@ -179,14 +211,17 @@ export function BlogEditor({
 
         {/* Preview Pane */}
         <div 
-          className="h-full overflow-hidden"
-          style={{ width: `${100 - splitPercent}%` }}
+          className={`h-full overflow-hidden flex flex-col ${
+            // On mobile, show if preview tab. On desktop, always show but non-flex (controlled by width)
+             mobileTab === "preview" ? "flex-1 md:flex-none" : "hidden md:flex md:flex-none"
+          }`}
+          style={{ width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${100 - splitPercent}%` : undefined }}
         >
           <div className="h-full p-4 flex flex-col">
-            <div className="text-[10px] mono text-muted-foreground mb-2 px-1">preview</div>
-            <div className="flex-1 overflow-auto border border-border bg-card/30 p-6">
-              <div className="max-w-2xl">
-                <h1 className="text-2xl font-medium mb-6">{title || "Untitled"}</h1>
+            <div className="text-[10px] mono text-muted-foreground mb-2 px-1 hidden md:block">preview</div>
+            <div className="flex-1 overflow-auto border border-border bg-card/30 p-4 md:p-6 rounded-md md:rounded-none">
+              <div className="max-w-2xl mx-auto">
+                <h1 className="text-2xl font-medium mb-6 mt-2 md:mt-0">{title || "Untitled"}</h1>
                 <MarkdownPreview content={content} />
               </div>
             </div>

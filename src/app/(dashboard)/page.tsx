@@ -60,10 +60,12 @@ export default function MyPage() {
   const publishedBlogs = blogs.filter((b) => b.published);
 
   return (
-    <main className="w-full min-h-screen flex justify-center px-6 py-16">
-      <div className="w-full max-w-lg fixed top-4">
+    <div className="w-full min-h-screen flex justify-center px-6 pt-24 pb-16 md:py-16">
+
+      <div className="w-full max-w-lg fixed top-14 md:top-6 left-1/2 -translate-x-1/2 px-6 z-40">
         <ToggleBar value={features} onChange={setFeatures} />
       </div>
+
       
       <div className="w-full max-w-lg flex flex-col gap-10 text-sm text-center items-center">
 
@@ -159,6 +161,6 @@ export default function MyPage() {
           plop.dev/nyahh
         </div>
       </div>
-    </main>
+    </div>
   );
 }

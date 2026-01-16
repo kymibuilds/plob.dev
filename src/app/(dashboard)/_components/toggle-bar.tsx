@@ -27,17 +27,20 @@ export function ToggleBar({ value, onChange }: Props) {
   const inactive = "text-muted-foreground hover:text-foreground";
 
   return (
-    <div className="flex items-center justify-between w-full relative">
-      {(Object.keys(value) as Feature[]).map((key) => (
-        <button
-          key={key}
-          onClick={() => toggle(key)}
-          aria-pressed={value[key]}
-          className={`${base} ${value[key] ? active : inactive}`}
-        >
-          {key}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between w-full relative">
+
+      <div className="flex flex-wrap gap-2 md:gap-4">
+        {(Object.keys(value) as Feature[]).map((key) => (
+          <button
+            key={key}
+            onClick={() => toggle(key)}
+            aria-pressed={value[key]}
+            className={`${base} ${value[key] ? active : inactive}`}
+          >
+            {key}
+          </button>
+        ))}
+      </div>
 
       {/* Colors Button */}
       <button

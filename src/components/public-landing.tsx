@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { CenteredLayout } from "./centered-layout";
-import { TextHoverEffect } from "./ui/text-hover-effect";
 
 export function PublicLanding() {
   return (
     <>
     <CenteredLayout>
       <div className="w-full max-w-md flex flex-col items-center justify-center gap-4 text-center">
-        <TextHoverEffect text="plop.dev" />
+        <h1 className="text-2xl font-medium">plop.dev</h1>
         <p className="text-sm">
           linktree but better. <br /> <span className="text-xs text-muted-foreground">
             blogs, sponsors, integrations and everything in between
