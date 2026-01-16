@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function NavItem({ href, label, shortcut }: { href: string; label: string; shortcut: string }) {
   return (
@@ -19,6 +20,16 @@ function NavItem({ href, label, shortcut }: { href: string; label: string; short
 
 export default function Navbar() {
   const router = useRouter();
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) setUsername(data.username);
+      })
+      .catch(console.error);
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -32,7 +43,7 @@ export default function Navbar() {
       <div className="w-64 flex flex-col gap-8 px-6 py-6">
         {/* Brand */}
         <div className="text-sm font-medium tracking-tight cursor-pointer" onClick={() => router.push("/")}>
-          nyahh.plop.dev
+          {username ? `${username}.plob.dev` : "plob.dev"}
         </div>
 
         {/* Navigation */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -29,7 +29,17 @@ function NavItem({ href, label, shortcut, onClick }: NavItemProps) {
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) setUsername(data.username);
+      })
+      .catch(console.error);
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -69,7 +79,7 @@ export function MobileNav() {
                 router.push("/");
               }}
             >
-              nyahh.plop.dev
+              {username ? `${username}.plob.dev` : "plob.dev"}
             </div>
             <button 
               onClick={() => setIsOpen(false)}

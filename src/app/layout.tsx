@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "plop",
+  title: "plob",
   description: "linktree, but better",
 };
 
