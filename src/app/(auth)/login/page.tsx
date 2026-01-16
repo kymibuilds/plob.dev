@@ -15,16 +15,37 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function validateForm(): string | null {
+    if (!identifier.trim()) {
+      return "please enter your email or username";
+    }
+    if (!password) {
+      return "please enter your password";
+    }
+    if (password.length < 6) {
+      return "password must be at least 6 characters";
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    // Client-side validation
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ identifier: identifier.toLowerCase().trim(), password }),
       });
 
       if (!res.ok) {

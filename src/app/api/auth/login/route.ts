@@ -26,10 +26,22 @@ export async function POST(req: Request) {
 
   const { identifier, password } = await req.json();
 
+  // Validate required fields
+  if (!identifier || !password) {
+    return new NextResponse("Missing fields", { status: 400 });
+  }
+
+  // Validate password length
+  if (password.length < 6) {
+    return new NextResponse("Invalid credentials", { status: 401 });
+  }
+
+  const normalizedIdentifier = identifier.toLowerCase().trim();
+
   const user = await db.query.users.findFirst({
     where: or(
-      eq(users.email, identifier),
-      eq(users.username, identifier)
+      eq(users.email, normalizedIdentifier),
+      eq(users.username, normalizedIdentifier)
     ),
   });
 
@@ -52,4 +64,3 @@ export async function POST(req: Request) {
     },
   });
 }
-

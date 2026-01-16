@@ -6,6 +6,12 @@ import Link from "next/link";
 
 import { CenteredLayout } from "@/components/centered-layout";
 
+// Email validation regex
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Username validation: alphanumeric and underscores only, 3-20 chars
+const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+
 export default function SignupPage() {
   const router = useRouter();
 
@@ -16,16 +22,37 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function validateForm(): string | null {
+    if (!emailRegex.test(email)) {
+      return "please enter a valid email address";
+    }
+    if (!usernameRegex.test(username)) {
+      return "username must be 3-20 characters, letters, numbers, and underscores only";
+    }
+    if (password.length < 6) {
+      return "password must be at least 6 characters";
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    // Client-side validation
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password }),
+        body: JSON.stringify({ email, username: username.toLowerCase(), password }),
       });
 
       if (!res.ok) {
@@ -94,10 +121,14 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              minLength={6}
               className="flex-1 bg-transparent outline-none border-b border-border focus:border-foreground"
             />
           </div>
+
+          {/* hint */}
+          <p className="text-[10px] text-muted-foreground">
+            password must be at least 6 characters
+          </p>
 
           {error && (
             <p className="text-xs text-destructive">
