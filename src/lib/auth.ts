@@ -16,6 +16,7 @@ export const auth = new Lucia(adapter, {
     return {
       email: attributes.email,
       username: attributes.username,
+      bio: attributes.bio,
     };
   },
 });
@@ -38,6 +39,7 @@ declare module "lucia" {
     DatabaseUserAttributes: {
       email: string;
       username: string;
+      bio: string | null;
     };
   }
 }

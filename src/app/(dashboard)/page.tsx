@@ -25,6 +25,11 @@ type Blog = {
   externalUrl?: string | null;
 };
 
+type UserInfo = {
+  username: string;
+  bio: string | null;
+};
+
 export default function MyPage() {
   const [features, setFeatures] = useState<FeatureConfig>({
     links: true,
@@ -32,13 +37,40 @@ export default function MyPage() {
     products: true,
     integrations: true,
   });
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [user, setUser] = useState<UserInfo | null>(null);
 
-  // Fetch data on mount
+  // Fetch settings and data on mount
   useEffect(() => {
+    // Fetch user info
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) {
+          setUser({ username: data.username, bio: data.bio || null });
+        }
+      })
+      .catch(console.error);
+
+    // Fetch visibility settings
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        setFeatures({
+          links: data.showLinks ?? true,
+          blogs: data.showBlogs ?? true,
+          products: data.showProducts ?? true,
+          integrations: data.showIntegrations ?? true,
+        });
+        setSettingsLoaded(true);
+      })
+      .catch(console.error);
+
+    // Fetch content
     fetch("/api/links")
       .then((res) => res.json())
       .then((data) => setLinks(data))
@@ -55,15 +87,36 @@ export default function MyPage() {
       .catch(console.error);
   }, []);
 
+  // Save settings when features change (but not on initial load)
+  const handleFeaturesChange = (newFeatures: FeatureConfig) => {
+    setFeatures(newFeatures);
+
+    // Only save if settings have been loaded (avoid saving default state)
+    if (settingsLoaded) {
+      fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          showLinks: newFeatures.links,
+          showBlogs: newFeatures.blogs,
+          showProducts: newFeatures.products,
+          showIntegrations: newFeatures.integrations,
+        }),
+      }).catch(console.error);
+    }
+  };
+
   // Filter to only active items
   const activeProducts = products.filter((p) => p.isActive);
   const publishedBlogs = blogs.filter((b) => b.published);
+
+  const username = user?.username || "...";
 
   return (
     <div className="w-full min-h-screen flex justify-center px-6 pt-24 pb-16 md:py-16">
 
       <div className="w-full max-w-lg fixed top-14 md:top-6 left-1/2 -translate-x-1/2 px-6 z-40">
-        <ToggleBar value={features} onChange={setFeatures} />
+        <ToggleBar value={features} onChange={handleFeaturesChange} />
       </div>
 
       
@@ -71,7 +124,10 @@ export default function MyPage() {
 
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-lg font-normal">[nyahh]</h1>
+          <h1 className="text-lg font-normal">[{username}]</h1>
+          {user?.bio && (
+            <p className="text-muted-foreground text-xs max-w-xs">{user.bio}</p>
+          )}
         </div>
 
         {/* Divider */}
@@ -158,7 +214,7 @@ export default function MyPage() {
 
         {/* Footer */}
         <div className="mono text-xs text-muted-foreground pt-6">
-          plop.dev/nyahh
+          {username}.plob.dev
         </div>
       </div>
     </div>

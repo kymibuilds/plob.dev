@@ -1,0 +1,173 @@
+import { notFound } from "next/navigation";
+import { db } from "@/db";
+import { users, userSettings, links, blogs, products } from "@/db/schema";
+import { eq, asc, desc, and } from "drizzle-orm";
+
+type Props = {
+  params: Promise<{ username: string }>;
+};
+
+export default async function PublicProfilePage({ params }: Props) {
+  const { username } = await params;
+
+  // Fetch user
+  const user = await db.query.users.findFirst({
+    where: eq(users.username, username),
+    columns: {
+      id: true,
+      username: true,
+      bio: true,
+    },
+  });
+
+  if (!user) {
+    notFound();
+  }
+
+  // Fetch user settings
+  const settings = await db.query.userSettings.findFirst({
+    where: eq(userSettings.userId, user.id),
+  });
+
+  const showLinks = settings?.showLinks ?? true;
+  const showBlogs = settings?.showBlogs ?? true;
+  const showProducts = settings?.showProducts ?? true;
+
+  // Fetch content based on settings
+  const [userLinks, userBlogs, userProducts] = await Promise.all([
+    showLinks
+      ? db.query.links.findMany({
+          where: eq(links.userId, user.id),
+          orderBy: [asc(links.order)],
+        })
+      : [],
+    showBlogs
+      ? db.query.blogs.findMany({
+          where: and(eq(blogs.userId, user.id), eq(blogs.published, true)),
+          orderBy: [desc(blogs.createdAt)],
+        })
+      : [],
+    showProducts
+      ? db.query.products.findMany({
+          where: and(eq(products.userId, user.id), eq(products.isActive, true)),
+          orderBy: [desc(products.createdAt)],
+        })
+      : [],
+  ]);
+
+  return (
+    <div className="w-full min-h-screen flex justify-center px-6 py-16">
+      <div className="w-full max-w-lg flex flex-col gap-10 text-sm text-center items-center">
+        {/* Header */}
+        <div className="flex flex-col gap-1">
+          <h1 className="text-lg font-normal">[{user.username}]</h1>
+          {user.bio && (
+            <p className="text-muted-foreground text-xs max-w-xs">{user.bio}</p>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="mono text-xs text-muted-foreground">
+          ────────────────────────
+        </div>
+
+        {/* Links */}
+        {showLinks && userLinks.length > 0 && (
+          <section className="flex flex-col gap-4 items-center">
+            <h2 className="mono text-xs text-muted-foreground">［ links ］</h2>
+            <div className="text-center max-w-xs leading-relaxed">
+              {userLinks.map((link, i) => (
+                <span key={link.id}>
+                  {i > 0 && <span className="text-muted-foreground mx-2">•</span>}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline cursor-pointer"
+                  >
+                    {link.name}
+                  </a>
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Blogs */}
+        {showBlogs && userBlogs.length > 0 && (
+          <section className="flex flex-col gap-4 items-center">
+            <h2 className="mono text-xs text-muted-foreground">［ blogs ］</h2>
+            <div className="flex flex-col gap-2">
+              {userBlogs.map((blog) => {
+                const isExternal = blog.isExternal;
+                const href = isExternal
+                  ? blog.externalUrl || "#"
+                  : `/blog/${blog.slug}`;
+                const target = isExternal ? "_blank" : undefined;
+
+                return (
+                  <a
+                    key={blog.id}
+                    href={href}
+                    target={target}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    {blog.title}
+                    {isExternal && <span className="text-[9px] -mt-1">↗</span>}
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Products */}
+        {showProducts && userProducts.length > 0 && (
+          <section className="flex flex-col gap-4 items-center w-full">
+            <h2 className="mono text-xs text-muted-foreground">
+              ［ products ］
+            </h2>
+            <div className="grid grid-cols-3 gap-2 w-full">
+              {userProducts.map((product) => (
+                <a
+                  key={product.id}
+                  className="flex flex-col group cursor-pointer border border-border bg-card/50 hover:border-foreground/20 transition-colors"
+                >
+                  {product.imageUrl ? (
+                    <div className="aspect-[3/2] overflow-hidden border-b border-border">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-[3/2] bg-muted/50 border-b border-border flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground">
+                        no image
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left p-2">
+                    <span className="text-xs group-hover:underline truncate">
+                      {product.name}
+                    </span>
+                    <span className="mono text-[10px] text-muted-foreground">
+                      {product.price}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Footer */}
+        <div className="mono text-xs text-muted-foreground pt-6">
+          {user.username}.plob.dev
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -12,7 +12,19 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  bio: text("bio"), // Optional short bio for public profile
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User settings for public profile visibility
+export const userSettings = pgTable("user_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  showLinks: boolean("show_links").default(true).notNull(),
+  showBlogs: boolean("show_blogs").default(true).notNull(),
+  showProducts: boolean("show_products").default(true).notNull(),
+  showIntegrations: boolean("show_integrations").default(true).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const sessions = pgTable("sessions", {

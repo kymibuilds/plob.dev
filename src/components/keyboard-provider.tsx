@@ -132,6 +132,12 @@ export function KeyboardProvider({ children }: KeyboardProviderProps) {
         case "d":
           preventAndHandle(() => customActions["delete"]?.());
           break;
+        case "p":
+          preventAndHandle(() => customActions["p"]?.());
+          break;
+        case "u":
+          preventAndHandle(() => customActions["u"]?.());
+          break;
       }
     };
 

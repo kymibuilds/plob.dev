@@ -73,6 +73,18 @@ export default function BlogsPage() {
       setNewDescription("");
       setNewExternalUrl("");
     });
+    registerAction("p", () => {
+      if (pendingDeleteId) return;
+      const blog = blogs[focusedIndex];
+      // Only execute if not already published
+      if (blog && !blog.published) handleSetPublish(blog.id, true);
+    });
+    registerAction("u", () => {
+      if (pendingDeleteId) return;
+      const blog = blogs[focusedIndex];
+      // Only execute if already published
+      if (blog && blog.published) handleSetPublish(blog.id, false);
+    });
 
     return () => {
       unregisterAction("down");
@@ -82,6 +94,8 @@ export default function BlogsPage() {
       unregisterAction("delete");
       unregisterAction("select");
       unregisterAction("cancel");
+      unregisterAction("p");
+      unregisterAction("u");
     };
   }, [blogs, focusedIndex, pendingDeleteId, registerAction, unregisterAction]);
 
@@ -211,12 +225,23 @@ export default function BlogsPage() {
     }
   };
 
-  const handleTogglePublish = async (id: string, currentPublished: boolean) => {
+  const handleSetPublish = async (id: string, shouldPublish: boolean) => {
+    // Check limit if publishing
+    if (shouldPublish) {
+      const currentPublishedCount = blogs.filter(b => b.published).length;
+      const targetBlog = blogs.find(b => b.id === id);
+      // If we are publishing a draft, and we are at or over limit
+      if (!targetBlog?.published && currentPublishedCount >= 5) {
+        window.alert("Limit reached: You can only have 5 active blogs at a time.");
+        return;
+      }
+    }
+
     try {
       const res = await fetch(`/api/blogs/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: !currentPublished }),
+        body: JSON.stringify({ published: shouldPublish }),
       });
 
       if (res.ok) {
@@ -226,6 +251,10 @@ export default function BlogsPage() {
     } catch (error) {
       console.error("Failed to update blog:", error);
     }
+  };
+
+  const handleTogglePublish = (id: string, currentPublished: boolean) => {
+    handleSetPublish(id, !currentPublished);
   };
 
   const handleSaveBlog = async (title: string, content: string) => {
@@ -263,10 +292,17 @@ export default function BlogsPage() {
     );
   }
 
+  const publishedCount = blogs.filter(b => b.published).length;
+
   return (
     <div className="w-full max-w-md mx-auto py-16 px-6 flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-normal">[manage posts]</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-normal">[manage posts]</h1>
+          <span className="text-xs text-muted-foreground mono hidden md:inline">
+            ({publishedCount}/5 active)
+          </span>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => handleAddStart("post")}
@@ -360,7 +396,7 @@ export default function BlogsPage() {
               !blog.published ? "opacity-75 border-dashed" : "border-border"
             } ${
               index === focusedIndex && !isPendingDelete
-                ? "border-l-2 border-l-foreground" 
+                ? "border-l-2 border-l-foreground border-solid" 
                 : ""
             } ${
               isPendingDelete 
@@ -370,16 +406,25 @@ export default function BlogsPage() {
           >
             {/* Delete Confirmation Overlay */}
             {isPendingDelete && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/90 z-10">
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-red-500 font-medium">delete "{blog.title}"?</span>
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-2 py-0.5 bg-red-500 text-white text-xs mono rounded-sm">y</kbd>
-                    <span className="text-muted-foreground">yes</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 backdrop-blur-[1px] z-10 gap-3 animate-in fade-in duration-200">
+                <span className="text-sm text-destructive font-medium">delete "{blog.title}"?</span>
+                <div className="flex items-center gap-6 text-xs mono text-muted-foreground">
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors group/btn"
+                    onClick={() => {
+                        handleDelete(blog.id);
+                        setPendingDeleteId(null);
+                    }}
+                  >
+                    <kbd className="min-w-[20px] h-5 flex items-center justify-center bg-background border border-border rounded text-[10px] group-hover/btn:border-foreground/50 transition-colors">y</kbd>
+                    <span>verify</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-2 py-0.5 bg-muted border border-border text-xs mono rounded-sm">n</kbd>
-                    <span className="text-muted-foreground">cancel</span>
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors group/btn"
+                    onClick={() => setPendingDeleteId(null)}
+                  >
+                    <kbd className="min-w-[20px] h-5 flex items-center justify-center bg-background border border-border rounded text-[10px] group-hover/btn:border-foreground/50 transition-colors">n</kbd>
+                    <span>cancel</span>
                   </div>
                 </div>
               </div>
@@ -450,7 +495,7 @@ export default function BlogsPage() {
                     </button>
                   )}
                   <button 
-                    onClick={() => handleDelete(blog.id)}
+                    onClick={() => setPendingDeleteId(blog.id)}
                     className="hover:text-red-500 text-muted-foreground"
                   >
                     del
