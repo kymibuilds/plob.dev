@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { BlogEditor } from "../_components/blog-editor";
+import { useKeyboard } from "@/components/keyboard-provider";
 
 type Blog = {
   id: string;
@@ -22,14 +23,77 @@ export default function BlogsPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [addMode, setAddMode] = useState<"post" | "link">("post");
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   
   const [newTitle, setNewTitle] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newExternalUrl, setNewExternalUrl] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   
   const formRef = useRef<HTMLDivElement>(null);
+  const { registerAction, unregisterAction } = useKeyboard();
 
+  // Register keyboard actions
+  useEffect(() => {
+    registerAction("down", () => {
+      if (pendingDeleteId) return; // Ignore during delete confirmation
+      setFocusedIndex((i) => Math.min(i + 1, blogs.length - 1));
+    });
+    registerAction("up", () => {
+      if (pendingDeleteId) return;
+      setFocusedIndex((i) => Math.max(i - 1, 0));
+    });
+    registerAction("new", () => {
+      if (pendingDeleteId) return;
+      handleAddStart("post");
+    });
+    registerAction("edit", () => {
+      if (pendingDeleteId) return;
+      const blog = blogs[focusedIndex];
+      if (blog && !blog.isExternal) setEditingBlog(blog);
+    });
+    registerAction("delete", () => {
+      if (pendingDeleteId) return;
+      const blog = blogs[focusedIndex];
+      if (blog) {
+        setPendingDeleteId(blog.id);
+      }
+    });
+    registerAction("select", () => {
+      if (pendingDeleteId) return;
+      const blog = blogs[focusedIndex];
+      if (blog && !blog.isExternal) setEditingBlog(blog);
+    });
+
+    return () => {
+      unregisterAction("down");
+      unregisterAction("up");
+      unregisterAction("new");
+      unregisterAction("edit");
+      unregisterAction("delete");
+      unregisterAction("select");
+    };
+  }, [blogs, focusedIndex, pendingDeleteId, registerAction, unregisterAction]);
+
+  // Handle y/n for delete confirmation
+  useEffect(() => {
+    if (!pendingDeleteId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        handleDelete(pendingDeleteId);
+        setPendingDeleteId(null);
+      } else if (e.key.toLowerCase() === "n" || e.key === "Escape") {
+        e.preventDefault();
+        setPendingDeleteId(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pendingDeleteId]);
 
   useEffect(() => {
     fetchBlogs();
@@ -262,13 +326,41 @@ export default function BlogsPage() {
         )}
 
         {/* Blogs List */}
-        {blogs.map((blog) => (
+        {blogs.map((blog, index) => {
+          const isPendingDelete = pendingDeleteId === blog.id;
+          
+          return (
           <article
             key={blog.id}
-            className={`flex flex-col gap-2 p-3 border border-border bg-card/50 group ${
-              !blog.published ? "opacity-75 border-dashed" : ""
+            className={`flex flex-col gap-2 p-3 border bg-card/50 group transition-all relative ${
+              !blog.published ? "opacity-75 border-dashed" : "border-border"
+            } ${
+              index === focusedIndex && !isPendingDelete
+                ? "border-l-2 border-l-foreground" 
+                : ""
+            } ${
+              isPendingDelete 
+                ? "border-red-500 bg-red-500/5" 
+                : ""
             }`}
           >
+            {/* Delete Confirmation Overlay */}
+            {isPendingDelete && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/90 z-10">
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-red-500 font-medium">delete "{blog.title}"?</span>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-0.5 bg-red-500 text-white text-xs mono rounded-sm">y</kbd>
+                    <span className="text-muted-foreground">yes</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-0.5 bg-muted border border-border text-xs mono rounded-sm">n</kbd>
+                    <span className="text-muted-foreground">cancel</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
@@ -342,7 +434,8 @@ export default function BlogsPage() {
                </div>
             </div>
           </article>
-        ))}
+        )})}
+
 
       </div>
 

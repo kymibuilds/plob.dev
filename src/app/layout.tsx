@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { PublicLanding } from "@/components/public-landing";
+import { KeyboardProvider } from "@/components/keyboard-provider";
+import { CommandPalette } from "@/components/command-palette";
+import { KeyboardHelp } from "@/components/keyboard-help";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -25,12 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="en">
-        <body
-          className={`${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
-        >
+    <html lang="en">
+      <body
+        className={`${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
+      >
+        <KeyboardProvider>
           {children}
-        </body>
-      </html>
+          <CommandPalette />
+          <KeyboardHelp />
+        </KeyboardProvider>
+      </body>
+    </html>
   );
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useKeyboard } from "@/components/keyboard-provider";
 
 type Product = {
   id: string;
@@ -21,11 +22,32 @@ export default function ProductsPage() {
   const [newDescription, setNewDescription] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageUrl, setNewImageUrl] = useState("");
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
+  const { registerAction, unregisterAction } = useKeyboard();
+
+  // Register keyboard actions
+  useEffect(() => {
+    registerAction("down", () => setFocusedIndex((i) => Math.min(i + 1, products.length - 1)));
+    registerAction("up", () => setFocusedIndex((i) => Math.max(i - 1, 0)));
+    registerAction("new", () => setIsAdding(true));
+    registerAction("delete", () => {
+      const product = products[focusedIndex];
+      if (product && window.confirm(`Delete "${product.name}"?`)) handleDelete(product.id);
+    });
+
+    return () => {
+      unregisterAction("down");
+      unregisterAction("up");
+      unregisterAction("new");
+      unregisterAction("delete");
+    };
+  }, [products, focusedIndex, registerAction, unregisterAction]);
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
 
   const fetchProducts = async () => {
     try {
@@ -197,10 +219,14 @@ export default function ProductsPage() {
         )}
 
         {/* Products List */}
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
             key={product.id}
-            className="flex flex-col gap-3 p-4 border border-border bg-card/50 group"
+            className={`flex flex-col gap-3 p-4 border bg-card/50 group transition-all ${
+              index === focusedIndex 
+                ? "border-l-2 border-l-foreground border-border" 
+                : "border-border"
+            }`}
           >
             <div className="flex justify-between items-start">
               <div className="flex gap-3">

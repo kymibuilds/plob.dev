@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useKeyboard } from "@/components/keyboard-provider";
 
 type LinkItem = {
   id: string;
@@ -15,12 +16,33 @@ export default function LinksPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
+  const { registerAction, unregisterAction } = useKeyboard();
+
+  // Register keyboard actions
+  useEffect(() => {
+    registerAction("down", () => setFocusedIndex((i) => Math.min(i + 1, links.length - 1)));
+    registerAction("up", () => setFocusedIndex((i) => Math.max(i - 1, 0)));
+    registerAction("new", () => setIsAdding(true));
+    registerAction("delete", () => {
+      const link = links[focusedIndex];
+      if (link && window.confirm(`Delete "${link.name}"?`)) handleDelete(link.id);
+    });
+
+    return () => {
+      unregisterAction("down");
+      unregisterAction("up");
+      unregisterAction("new");
+      unregisterAction("delete");
+    };
+  }, [links, focusedIndex, registerAction, unregisterAction]);
 
   // Fetch links on mount
   useEffect(() => {
     fetchLinks();
   }, []);
+
 
   const fetchLinks = async () => {
     try {
@@ -156,10 +178,14 @@ export default function LinksPage() {
         )}
 
         {/* Links List */}
-        {links.map((link) => (
+        {links.map((link, index) => (
           <div
             key={link.id}
-            className="flex items-center justify-between p-3 border border-border bg-card/50 group"
+            className={`flex items-center justify-between p-3 border bg-card/50 group transition-all ${
+              index === focusedIndex 
+                ? "border-l-2 border-l-foreground border-border" 
+                : "border-border"
+            }`}
           >
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">{link.name}</span>
@@ -183,5 +209,3 @@ export default function LinksPage() {
     </div>
   );
 }
-
-

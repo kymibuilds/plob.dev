@@ -2,6 +2,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+function NavItem({ href, label, shortcut }: { href: string; label: string; shortcut: string }) {
+  return (
+    <Link 
+      href={href} 
+      className="flex items-center justify-between group py-0.5 hover:bg-muted/50 -mx-2 px-2 transition-colors"
+    >
+      <span className="group-hover:underline">{label}</span>
+      <span className="mono text-[10px] text-muted-foreground/50 group-hover:text-muted-foreground transition-colors">
+        g {shortcut}
+      </span>
+    </Link>
+  );
+}
+
+
 export default function Navbar() {
   const router = useRouter();
 
@@ -21,25 +36,13 @@ export default function Navbar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col gap-3 text-sm">
-          <Link href="/links" className="hover:underline">
-            links
-          </Link>
-          <Link href="/analytics" className="hover:underline">
-            analytics
-          </Link>
-          <Link href="/blogs" className="hover:underline">
-            blogs
-          </Link>
-          <Link href="/products" className="hover:underline">
-            products
-          </Link>
-          <Link href="/sponsors" className="hover:underline">
-            sponsors
-          </Link>
-          <Link href="/integrations" className="hover:underline">
-            integrations
-          </Link>
+        <nav className="flex flex-col gap-2 text-sm">
+          <NavItem href="/links" label="links" shortcut="l" />
+          <NavItem href="/analytics" label="analytics" shortcut="a" />
+          <NavItem href="/blogs" label="blogs" shortcut="b" />
+          <NavItem href="/products" label="products" shortcut="p" />
+          <NavItem href="/sponsors" label="sponsors" shortcut="s" />
+          <NavItem href="/integrations" label="integrations" shortcut="i" />
         </nav>
 
         {/* Footer */}
