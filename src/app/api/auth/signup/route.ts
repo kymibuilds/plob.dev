@@ -7,7 +7,7 @@ import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
 // Validation patterns
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+const usernameRegex = /^[a-zA-Z0-9_]{3,10}$/;
 
 export async function POST(req: Request) {
   // Rate limit: 3 signups per hour per IP
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
   // Validate username format
   if (!usernameRegex.test(username)) {
-    return new NextResponse("Username must be 3-20 characters, letters, numbers, and underscores only", { status: 400 });
+    return new NextResponse("Username must be 3-10 characters, letters, numbers, and underscores only", { status: 400 });
   }
 
   // Validate password length

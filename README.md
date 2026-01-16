@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# plob.dev
 
-## Getting Started
+**linktree, but better.**
 
-First, run the development server:
+A developer-first profile page generator with built-in blogging, product showcase, and deep analytics. Built for speed, customization, and seamless user experience.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![plob.dev banner](https://github.com/user-attachments/assets/placeholder)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Wildcard Subdomains**: Every user gets their own `username.plob.dev` profile.
+- **Link Management**: Add, reorder, and track clicks on your links.
+- **Micro-Blogging**: Write and publish markdown blogs directly on your subdomain (`username.plob.dev/blog/slug`).
+- **Product Showcase**: Display products with images and prices.
+- **Deep Analytics**: Track views, clicks, and visitor stats (powered by Vercel Analytics).
+- **Customizable Layouts**: Toggle between horizontal/vertical links, enable/disable sections.
+- **Keyboard First**: Navigate the entire dashboard with `g` + `key` shortcuts.
+- **Secure Auth**: Powered by Lucia Auth + Neon (PostgreSQL).
+- **Fast**: Built on Next.js 14 App Router and Edge Middleware.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Language**: TypeScript
+- **Database**: [Neon](https://neon.tech/) (Serverless PostgreSQL)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Auth**: [Lucia Auth](https://lucia-auth.com/)
+- **Styling**: TailwindCSS
+- **Deployment**: Vercel
+- **Analytics**: Vercel Analytics
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Getting Started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Prerequisites
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Node.js 18+
+- Bun (recommended) or npm/pnpm
+- A Neon database project
 
-## Deploy on Vercel
+### Installation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/kymibuilds/plop.dev.git
+   cd plop.dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
+
+3. Set up environment variables:
+   Copy `.env.example` to `.env` (or create one):
+   ```bash
+   NEXT_PUBLIC_ROOT_DOMAIN=localhost:3000
+   DATABASE_URL=postgresql://user:pass@ep-....neon.tech/neondb?sslmode=require
+   ```
+   *Note: For local development with subdomains, use `lvh.me` instead of localhost if needed, or configure your hosts file.*
+
+4. Push database schema:
+   ```bash
+   bun db:push
+   ```
+
+5. Run the development server:
+   ```bash
+   bun dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
+To test public profiles locally, go to `http://username.localhost:3000` (requires distinct port mapping or `lvh.me`).
+
+## 🌍 Deployment
+
+Deployed on **Vercel**.
+
+### Environment Variables Required on Vercel:
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Your Neon connection string (ensure `sslmode=require`) |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | `plob.dev` |
+
+### Domain Configuration:
+
+You must add **two** domains in Vercel settings:
+1. `plob.dev` (Main)
+2. `*.plob.dev` (Wildcard for subdomains)
+
+And configure your DNS nameservers to point to Vercel:
+- `ns1.vercel-dns.com`
+- `ns2.vercel-dns.com`
+
+## ⌨️ Shortcuts
+
+- `g` + `l` : Go to Links
+- `g` + `b` : Go to Blogs
+- `g` + `p` : Go to Products
+- `g` + `a` : Go to Analytics
+- `g` + `s` : Go to Sponsors
+- `p` : Publish Blog (in editor)
+- `u` : Unpublish Blog (in editor)
+
+## 📄 License
+
+MIT

@@ -9,8 +9,8 @@ import { CenteredLayout } from "@/components/centered-layout";
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Username validation: alphanumeric and underscores only, 3-20 chars
-const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+// Username validation: alphanumeric and underscores only, 3-10 chars
+const usernameRegex = /^[a-zA-Z0-9_]{3,10}$/;
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function SignupPage() {
       return "please enter a valid email address";
     }
     if (!usernameRegex.test(username)) {
-      return "username must be 3-20 characters, letters, numbers, and underscores only";
+      return "username must be 3-10 characters, letters, numbers, and underscores only";
     }
     if (password.length < 6) {
       return "password must be at least 6 characters";
